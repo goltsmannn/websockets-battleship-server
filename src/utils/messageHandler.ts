@@ -4,7 +4,7 @@ import App from "./App";
 
 const messageHandler = (msg: RawData, app: App ) => {
     const request: Request = JSON.parse(msg.toString("utf-8"));
-    request.data = JSON.parse(request.data as string);
+    request.data = request.data? JSON.parse(request.data as string): "";
     app.dispatchRequest(request);
 };
 

@@ -1,10 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Player_interface_1 = require("../../models/Player.interface");
+const RoomServices_1 = __importDefault(require("../ModelServices/RoomServices"));
 class App {
-    constructor(playerServices, ws) {
+    constructor(playerServices, roomService, ws) {
         this.ws = ws;
         this.playerServices = playerServices;
+        this.roomService = roomService;
     }
     dispatchRequest(req) {
         //  req.data = JSON.parse(req.data);
@@ -12,17 +17,11 @@ class App {
             case "reg":
                 this.registerPlayer(req);
                 break;
-            case "update_winners":
-                this.updateWinners(req);
-                break;
             case "create_room":
                 this.createRoom(req);
                 break;
             case "create_game":
                 this.createGame(req);
-                break;
-            case "update_room":
-                this.updateRoom(req);
                 break;
             case "add_ships":
                 this.addShips(req);
@@ -65,17 +64,16 @@ class App {
                 errorText: "",
             }),
             id: req['id'] };
-        console.log(this.ws);
         this.ws.send(JSON.stringify(response));
-    }
-    updateWinners(req) {
-        return;
     }
     createGame(req) {
     }
-    updateRoom(req) {
-    }
     createRoom(req) {
+        const player = this.playerServices.findPlayerByWs(this.ws);
+        if (!player) {
+            throw new Error("Error while locating player by WS connection");
+        }
+        RoomServices_1.default.addRoom(player);
     }
     finish(req) {
     }

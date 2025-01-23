@@ -4,20 +4,21 @@ import messageHandler from "../utils/messageHandler";
 import App from "../utils/App";
 import WebSocket from "ws";
 import PlayerServices from "../ModelServices/PlayerServices";
+import RoomServices from "../ModelServices/RoomServices";
 dotenv.config();
 
 const wss = new WebSocketServer({port: 3000}, () =>  {
     console.log("Server listening on port 3000");
 });
 const playerService = new PlayerServices();
+const roomService = new RoomServices(playerService);
 
 wss.on('connection', (socket: WebSocket , req) => {
     console.log('new client')
     socket.send("Connected to server");
-    const app = new App(playerService, socket);
+    const app = new App(playerService, roomService, socket);
 
     socket.on('message', (msg) => {
-
         try {
             messageHandler(msg, app);
         }

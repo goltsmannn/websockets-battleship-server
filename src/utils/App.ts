@@ -2,15 +2,18 @@ import Request from "../../models/Request.interface";
 import {WebSocket} from "ws";
 import Player, {isPlayerData} from "../../models/Player.interface";
 import PlayerServices from "../ModelServices/PlayerServices";
+import RoomServices from "../ModelServices/RoomServices";
 
 class App {
 
     ws: WebSocket;
     playerServices: PlayerServices;
+    roomService: RoomServices;
 
-    constructor(playerServices: PlayerServices, ws: WebSocket) {
+    constructor(playerServices: PlayerServices, roomService: RoomServices, ws: WebSocket) {
         this.ws = ws;
         this.playerServices = playerServices;
+        this.roomService = roomService;
     }
 
     public dispatchRequest(req: Request) {
@@ -19,17 +22,11 @@ class App {
             case "reg":
                 this.registerPlayer(req);
                 break;
-            case "update_winners":
-                this.updateWinners(req);
-                break
             case "create_room":
                 this.createRoom(req);
                 break;
             case "create_game":
                 this.createGame(req);
-                break;
-            case "update_room":
-                this.updateRoom(req);
                 break;
             case "add_ships":
                 this.addShips(req);
@@ -75,24 +72,20 @@ class App {
                 errorText: "",
             }),
             id: req['id']};
-        console.log(this.ws);
         this.ws.send(JSON.stringify(response));
-    }
-
-    private updateWinners(req: Request) {
-        return;
     }
 
     private createGame(req: Request) {
 
     }
 
-    private updateRoom(req: Request) {
-
-    }
 
     private createRoom(req: Request) {
-
+        const player = this.playerServices.findPlayerByWs(this.ws);
+        if (!player) {
+            throw new Error("Error while locating player by WS connection");
+        }
+        RoomServices.addRoom(player);
     }
 
     private finish(req: Request) {

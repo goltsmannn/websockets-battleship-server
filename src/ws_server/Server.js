@@ -8,15 +8,17 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const messageHandler_1 = __importDefault(require("../utils/messageHandler"));
 const App_1 = __importDefault(require("../utils/App"));
 const PlayerServices_1 = __importDefault(require("../ModelServices/PlayerServices"));
+const RoomServices_1 = __importDefault(require("../ModelServices/RoomServices"));
 dotenv_1.default.config();
 const wss = new ws_1.WebSocketServer({ port: 3000 }, () => {
     console.log("Server listening on port 3000");
 });
 const playerService = new PlayerServices_1.default();
+const roomService = new RoomServices_1.default(playerService);
 wss.on('connection', (socket, req) => {
     console.log('new client');
     socket.send("Connected to server");
-    const app = new App_1.default(playerService, socket);
+    const app = new App_1.default(playerService, roomService, socket);
     socket.on('message', (msg) => {
         try {
             (0, messageHandler_1.default)(msg, app);

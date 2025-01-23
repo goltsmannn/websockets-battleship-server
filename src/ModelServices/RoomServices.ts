@@ -2,6 +2,7 @@ import PlayerServices from "./PlayerServices";
 import RoomResponse from "../../models/RoomResponse.interface";
 import Player from "../../models/Player.interface";
 import Request from "../../models/Request.interface";
+import GameService from "./GameService";
 
 
 class RoomServices {
@@ -26,6 +27,9 @@ class RoomServices {
             this.Rooms[roomId].roomUsers.push({name: player.name, index: player.index});
         }
         this.updateRoom();
+        if(this.Rooms[roomId].roomUsers.length == 2) {
+            GameService.addGame(this.Rooms[roomId].roomUsers[0], this.Rooms[roomId].roomUsers[1]);
+        }
         return this.Rooms[roomId];
     }
 

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Player_interface_1 = require("../../models/Player.interface");
 const RoomServices_1 = __importDefault(require("../ModelServices/RoomServices"));
+const PlayerErrors_1 = require("../Errors/PlayerErrors");
 class App {
     constructor(playerServices, roomService, ws) {
         this.ws = ws;
@@ -13,36 +14,44 @@ class App {
     }
     dispatchRequest(req) {
         //  req.data = JSON.parse(req.data);
-        switch (req.type) {
-            case "reg":
-                this.registerPlayer(req);
-                break;
-            case "create_room":
+        if (req.type === "reg") {
+            this.registerPlayer(req);
+        }
+        else {
+            const player = this.playerServices.findPlayerByWs(this.ws);
+            if (!player) {
+                throw new Error("Error while locating player by WS connection");
+            }
+            if (req.type === "create_room") {
                 this.createRoom(req);
-                break;
-            case "create_game":
+            }
+            else if (req.type === "add_user_to_room") {
+                this.addUserToRoom(req);
+            }
+            else if (req.type === "create_game") {
                 this.createGame(req);
-                break;
-            case "add_ships":
+            }
+            else if (req.type === "add_ships") {
                 this.addShips(req);
-                break;
-            case "start_game":
+            }
+            else if (req.type === "start_game") {
                 this.startGame(req);
-                break;
-            case "attack":
+            }
+            else if (req.type === "attack") {
                 this.attack(req);
-                break;
-            case "randomAttack":
+            }
+            else if (req.type === "randomAttack") {
                 this.randomAttack(req);
-                break;
-            case "turn":
+            }
+            else if (req.type === "turn") {
                 this.turn(req);
-                break;
-            case "finish":
+            }
+            else if (req.type === "finish") {
                 this.finish(req);
-                break;
-            default:
-                throw new Error("Invalid reg type");
+            }
+            else {
+                throw new Error("Invalid request type");
+            }
         }
     }
     registerPlayer(req) {
@@ -55,25 +64,47 @@ class App {
                 } };
             this.ws.send(JSON.stringify({ response }));
         }
-        const player = this.playerServices.addPlayer(req.data.name, req.data.password, this.ws);
-        const response = { type: "reg",
-            data: JSON.stringify({
-                name: player.name,
-                index: player.index,
-                error: false,
-                errorText: "",
-            }),
-            id: req['id'] };
-        this.ws.send(JSON.stringify(response));
-    }
-    createGame(req) {
+        try {
+            const player = this.playerServices.addPlayer(req.data.name, req.data.password, this.ws);
+            const response = { type: "reg",
+                data: JSON.stringify({
+                    name: player.name,
+                    index: player.index,
+                    error: false,
+                    errorText: "",
+                }),
+                id: req['id'] };
+            this.ws.send(JSON.stringify(response));
+        }
+        catch (err) {
+            if (err instanceof PlayerErrors_1.AuthorizationError) {
+                console.log(err.message);
+                this.ws.send("");
+            }
+            else if (err instanceof PlayerErrors_1.MultiTabConnectionError) {
+                console.log(err.message);
+                this.ws.send("");
+            }
+            else {
+                this.ws.send("");
+            }
+        }
     }
     createRoom(req) {
         const player = this.playerServices.findPlayerByWs(this.ws);
-        if (!player) {
-            throw new Error("Error while locating player by WS connection");
-        }
         RoomServices_1.default.addRoom(player);
+    }
+    addUserToRoom(req) {
+        const player = this.playerServices.findPlayerByWs(this.ws);
+        const roomId = req.data.hasOwnProperty("indexRoom") ? req.data.indexRoom : undefined;
+        if (!roomId) {
+            console.log("Missing data in json req");
+        }
+        else {
+            RoomServices_1.default.addUsersToRoom(player, roomId);
+        }
+    }
+    createGame(req) {
     }
     finish(req) {
     }

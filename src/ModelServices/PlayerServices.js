@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Player_interface_1 = require("../../models/Player.interface");
 const RoomServices_1 = __importDefault(require("./RoomServices"));
+const PlayerErrors_1 = require("../Errors/PlayerErrors");
 class PlayerServices {
     constructor() {
         this.Players = {};
@@ -22,6 +23,13 @@ class PlayerServices {
     addPlayer(name, password, ws) {
         const existingPlayer = this.findPlayerByName(name);
         if (existingPlayer) {
+            console.log("Player already exists");
+            if (existingPlayer.password !== password) {
+                throw new PlayerErrors_1.AuthorizationError();
+            }
+            if (existingPlayer.ws !== ws) {
+                throw new PlayerErrors_1.MultiTabConnectionError();
+            }
             return existingPlayer;
         }
         const index = (0, Player_interface_1.createId)(name, password);

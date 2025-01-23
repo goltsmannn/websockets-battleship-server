@@ -1,11 +1,18 @@
 import Player, {createId} from "../../models/Player.interface";
-import WebSocket from "ws";
+import WebSocket, {name} from "ws";
 import Request from "../../models/Request.interface";
 import RoomServices from "./RoomServices";
+import {AuthorizationError, MultiTabConnectionError} from "../Errors/PlayerErrors";
+import * as console from "node:console";
+import * as console from "node:console";
+
 
 export default class PlayerServices {
+    get Players(): { [p: string]: Player } {
+        return this._Players;
+    }
 
-    private Players: { [key: string]: Player } = {};
+    private _Players: { [key: string]: Player } = {};
     private static cnt = 0;
 
     constructor() {
@@ -24,22 +31,30 @@ export default class PlayerServices {
     addPlayer(name: string, password: string, ws: WebSocket): Player {
         const existingPlayer = this.findPlayerByName(name);
         if(existingPlayer) {
+            console.log("Player already exists");
+            if (existingPlayer.password !== password) {
+                throw new AuthorizationError();
+            }
+            if (existingPlayer.ws !== ws) {
+                throw new MultiTabConnectionError();
+            }
+
             return existingPlayer;
         }
 
         const index = createId(name, password);
-        this.Players[index] = <Player>{name, password, index, wins: 0, ws: ws};
-        this.updateWinners(this.Players[index]);
+        this._Players[index] = <Player>{name, password, index, wins: 0, ws: ws};
+        this.updateWinners(this._Players[index]);
         RoomServices.updateRoom();
-        return this.Players[index];
+        return this._Players[index];
     }
 
     findPlayerByName(name: string): Player | undefined {
-        return Object.values(this.Players).find(player => player.name === name);
+        return Object.values(this._Players).find(player => player.name === name);
     }
 
     findPlayerByWs(ws: WebSocket): Player | undefined {
-        return Object.values(this.Players).find(player => player.ws === ws);
+        return Object.values(this._Players).find(player => player.ws === ws);
     }
 
     updateWinners(player: Player) {
@@ -58,7 +73,7 @@ export default class PlayerServices {
 
 
     notifyAllUsers(request: Request) {
-        for(const [key, player] of Object.entries(this.Players)) {
+        for(const [key, player] of Object.entries(this._Players)) {
             player.ws.send(JSON.stringify(request));
         }
     }

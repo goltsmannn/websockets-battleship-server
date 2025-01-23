@@ -1,5 +1,5 @@
 export default interface Request {
     type: string;
-    data: object;
+    data: string | object ;
     id: number;
 }

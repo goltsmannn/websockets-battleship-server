@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "models"],
+  "ext": "ts",
+  "exec": "npm run build && node index.js",
+  "ignore": ["node_modules"]
+}

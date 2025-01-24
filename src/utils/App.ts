@@ -6,6 +6,7 @@ import RoomServices from "../ModelServices/RoomServices";
 import {AuthorizationError, MultiTabConnectionError} from "../Errors/PlayerErrors";
 import GameService from "../ModelServices/GameService";
 import roomServices from "../ModelServices/RoomServices";
+import {AttackData, AttackRequest} from "../../models/AttackRequest.interface";
 
 class App {
 
@@ -37,12 +38,8 @@ class App {
                 this.addUserToRoom(req, player);
             } else if (req.type === "add_ships") {
                 this.addShips(req, player);
-            } else if (req.type === "start_game") {
-                this.startGame(req);
             } else if (req.type === "attack") {
-                this.attack(req);
-            } else if (req.type === "randomAttack") {
-                this.randomAttack(req);
+                this.attack(req as AttackRequest);
             } else if (req.type === "turn") {
                 this.turn(req);
             } else if (req.type === "finish") {
@@ -63,6 +60,7 @@ class App {
                 }};
             this.ws.send(JSON.stringify({response}));
         }
+
         try {
             const player: Player = this.playerServices.addPlayer((req.data as Player).name, (req.data as Player).password, this.ws);
             const response: Request = {type: "reg",
@@ -96,7 +94,7 @@ class App {
     private addUserToRoom(req: Request, player: Player) {
         const roomId = req.data.hasOwnProperty("indexRoom") ? (req.data as any).indexRoom : undefined;
         if (!roomId) {
-            throw new Error("Missing data in json req");
+            throw new Error("Missing data in add user to room request");
         } else {
             roomServices.addUsersToRoom(player!, roomId);
         }
@@ -112,29 +110,29 @@ class App {
             indexPlayer = (req.data as any).indexPlayer;
             ships = (req.data as any).ships;
         } else {
-            throw new Error("Missing data in json req");
+            throw new Error("Missing data in add ships request");
         }
         GameService.addShips({gameId, ships, indexPlayer});
+    }
+
+    private attack(req: AttackRequest) {
+        const data = req.data;
+        if ('gameId' in data && 'indexPlayer' in data && 'x' in data && 'y' in data) {
+            GameService.attack(data);
+        } else {
+            throw new Error("Missing data in attack request")
+        }
     }
 
     private finish(req: Request) {
 
     }
 
+
     private turn(req: Request) {
 
     }
 
-    private randomAttack(req: Request) {
-
-    }
-
-    private startGame(req: Request) {
-
-    }
-    private attack(req: Request) {
-
-    }
 }
 
 export default App;

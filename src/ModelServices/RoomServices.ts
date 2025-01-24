@@ -44,8 +44,6 @@ class RoomServices {
     }
 
 
-
-
 }
 
 export default RoomServices;

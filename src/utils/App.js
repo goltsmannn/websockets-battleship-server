@@ -33,14 +33,8 @@ class App {
             else if (req.type === "add_ships") {
                 this.addShips(req, player);
             }
-            else if (req.type === "start_game") {
-                this.startGame(req);
-            }
             else if (req.type === "attack") {
                 this.attack(req);
-            }
-            else if (req.type === "randomAttack") {
-                this.randomAttack(req);
             }
             else if (req.type === "turn") {
                 this.turn(req);
@@ -95,7 +89,7 @@ class App {
     addUserToRoom(req, player) {
         const roomId = req.data.hasOwnProperty("indexRoom") ? req.data.indexRoom : undefined;
         if (!roomId) {
-            throw new Error("Missing data in json req");
+            throw new Error("Missing data in add user to room request");
         }
         else {
             RoomServices_1.default.addUsersToRoom(player, roomId);
@@ -111,19 +105,22 @@ class App {
             ships = req.data.ships;
         }
         else {
-            throw new Error("Missing data in json req");
+            throw new Error("Missing data in add ships request");
         }
         GameService_1.default.addShips({ gameId, ships, indexPlayer });
+    }
+    attack(req) {
+        const data = req.data;
+        if ('gameId' in data && 'indexPlayer' in data && 'x' in data && 'y' in data) {
+            GameService_1.default.attack(data);
+        }
+        else {
+            throw new Error("Missing data in attack request");
+        }
     }
     finish(req) {
     }
     turn(req) {
-    }
-    randomAttack(req) {
-    }
-    startGame(req) {
-    }
-    attack(req) {
     }
 }
 exports.default = App;

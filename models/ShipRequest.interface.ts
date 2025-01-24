@@ -3,8 +3,15 @@ interface Position {
     y: number;
 }
 
+export const ShipType = {
+    'small': 1,
+    'medium': 2,
+    'large': 3,
+    'huge': 4
+}
+
 export interface ShipData {
-    positions: Position;
+    position: Position;
     direction: boolean;
     length: number;
     type: "small" | "medium" | "large" | "huge";
@@ -13,5 +20,5 @@ export interface ShipData {
 export default interface ShipRequest {
     gameId: string;
     ships: ShipData[];
-    indexPlayer: number;
+    indexPlayer: string;
 }

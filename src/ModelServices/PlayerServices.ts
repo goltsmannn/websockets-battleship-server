@@ -1,10 +1,9 @@
 import Player, {createId} from "../../models/Player.interface";
-import WebSocket, {name} from "ws";
+import WebSocket from "ws";
 import Request from "../../models/Request.interface";
 import RoomServices from "./RoomServices";
 import {AuthorizationError, MultiTabConnectionError} from "../Errors/PlayerErrors";
-import * as console from "node:console";
-import * as console from "node:console";
+
 
 
 export default class PlayerServices {

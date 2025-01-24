@@ -3,7 +3,7 @@ interface Position {
     y: number;
 }
 
-interface ShipData {
+export interface ShipData {
     positions: Position;
     direction: boolean;
     length: number;

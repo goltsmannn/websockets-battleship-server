@@ -5,6 +5,7 @@ import App from "../utils/App";
 import WebSocket from "ws";
 import PlayerServices from "../ModelServices/PlayerServices";
 import RoomServices from "../ModelServices/RoomServices";
+import GameService from "../ModelServices/GameService";
 dotenv.config();
 
 const wss = new WebSocketServer({port: 3000}, () =>  {
@@ -12,11 +13,12 @@ const wss = new WebSocketServer({port: 3000}, () =>  {
 });
 const playerService = new PlayerServices();
 const roomService = new RoomServices(playerService);
+const gameService = new GameService(playerService);
 
 wss.on('connection', (socket: WebSocket , req) => {
     console.log('new client')
     socket.send("Connected to server");
-    const app = new App(playerService, roomService, socket);
+    const app = new App(playerService, roomService, gameService, socket);
 
     socket.on('message', (msg) => {
         try {

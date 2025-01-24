@@ -4,17 +4,21 @@ import Player, {isPlayerData} from "../../models/Player.interface";
 import PlayerServices from "../ModelServices/PlayerServices";
 import RoomServices from "../ModelServices/RoomServices";
 import {AuthorizationError, MultiTabConnectionError} from "../Errors/PlayerErrors";
+import GameService from "../ModelServices/GameService";
+import roomServices from "../ModelServices/RoomServices";
 
 class App {
 
     ws: WebSocket;
     playerServices: PlayerServices;
     roomService: RoomServices;
+    gameService: GameService;
 
-    constructor(playerServices: PlayerServices, roomService: RoomServices, ws: WebSocket) {
+    constructor(playerServices: PlayerServices, roomService: RoomServices, gameService: GameService, ws: WebSocket) {
         this.ws = ws;
         this.playerServices = playerServices;
         this.roomService = roomService;
+        this.gameService = gameService;
     }
 
     public dispatchRequest(req: Request) {
@@ -28,13 +32,11 @@ class App {
             }
 
             if (req.type === "create_room") {
-                this.createRoom(req);
+                this.createRoom(req, player);
             } else if (req.type === "add_user_to_room") {
-                this.addUserToRoom(req);
-            } else if (req.type === "create_game") {
-                this.createGame(req);
+                this.addUserToRoom(req, player);
             } else if (req.type === "add_ships") {
-                this.addShips(req);
+                this.addShips(req, player);
             } else if (req.type === "start_game") {
                 this.startGame(req);
             } else if (req.type === "attack") {
@@ -86,24 +88,33 @@ class App {
         }
     }
 
-    private createRoom(req: Request) {
-        const player = this.playerServices.findPlayerByWs(this.ws);
-        RoomServices.addRoom(player!);
+    private createRoom(req: Request, player: Player) {
+        roomServices.addRoom(player!);
     }
 
 
-    private addUserToRoom(req: Request) {
-        const player = this.playerServices.findPlayerByWs(this.ws);
-        const roomId = (req.data as object).hasOwnProperty("indexRoom") ? (req.data as any).indexRoom : undefined;
+    private addUserToRoom(req: Request, player: Player) {
+        const roomId = req.data.hasOwnProperty("indexRoom") ? (req.data as any).indexRoom : undefined;
         if (!roomId) {
-            console.log("Missing data in json req");
+            throw new Error("Missing data in json req");
         } else {
-            RoomServices.addUsersToRoom(player!, roomId);
+            roomServices.addUsersToRoom(player!, roomId);
         }
     }
 
-    private createGame(req: Request) {
-
+    private addShips(req: Request, player: Player) {
+        let gameId, indexPlayer, ships;
+        if  (req.data.hasOwnProperty('gameId')
+            && req.data.hasOwnProperty('indexPlayer')
+            && req.data.hasOwnProperty('ships')
+        ) {
+            gameId = (req.data as any).gameId;
+            indexPlayer = (req.data as any).indexPlayer;
+            ships = (req.data as any).ships;
+        } else {
+            throw new Error("Missing data in json req");
+        }
+        GameService.addShips({gameId, ships, indexPlayer});
     }
 
     private finish(req: Request) {
@@ -119,10 +130,6 @@ class App {
     }
 
     private startGame(req: Request) {
-
-    }
-
-    private addShips(req: Request) {
 
     }
     private attack(req: Request) {

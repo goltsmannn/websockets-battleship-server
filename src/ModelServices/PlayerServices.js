@@ -7,8 +7,11 @@ const Player_interface_1 = require("../../models/Player.interface");
 const RoomServices_1 = __importDefault(require("./RoomServices"));
 const PlayerErrors_1 = require("../Errors/PlayerErrors");
 class PlayerServices {
+    get Players() {
+        return this._Players;
+    }
     constructor() {
-        this.Players = {};
+        this._Players = {};
         if (PlayerServices.cnt > 0) {
             console.log("Singleton class, cannot create instance");
             throw new Error("Singleton class, cannot create instance");
@@ -33,16 +36,16 @@ class PlayerServices {
             return existingPlayer;
         }
         const index = (0, Player_interface_1.createId)(name, password);
-        this.Players[index] = { name, password, index, wins: 0, ws: ws };
-        this.updateWinners(this.Players[index]);
+        this._Players[index] = { name, password, index, wins: 0, ws: ws };
+        this.updateWinners(this._Players[index]);
         RoomServices_1.default.updateRoom();
-        return this.Players[index];
+        return this._Players[index];
     }
     findPlayerByName(name) {
-        return Object.values(this.Players).find(player => player.name === name);
+        return Object.values(this._Players).find(player => player.name === name);
     }
     findPlayerByWs(ws) {
-        return Object.values(this.Players).find(player => player.ws === ws);
+        return Object.values(this._Players).find(player => player.ws === ws);
     }
     updateWinners(player) {
         const request = {
@@ -56,7 +59,7 @@ class PlayerServices {
         this.notifyAllUsers(request);
     }
     notifyAllUsers(request) {
-        for (const [key, player] of Object.entries(this.Players)) {
+        for (const [key, player] of Object.entries(this._Players)) {
             player.ws.send(JSON.stringify(request));
         }
     }

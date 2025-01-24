@@ -1,5 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const GameService_1 = __importDefault(require("./GameService"));
 class RoomServices {
     constructor(playerServices_) {
         RoomServices.playerServices = playerServices_;
@@ -15,6 +19,9 @@ class RoomServices {
             this.Rooms[roomId].roomUsers.push({ name: player.name, index: player.index });
         }
         this.updateRoom();
+        if (this.Rooms[roomId].roomUsers.length == 2) {
+            GameService_1.default.addGame(this.Rooms[roomId].roomUsers[0], this.Rooms[roomId].roomUsers[1]);
+        }
         return this.Rooms[roomId];
     }
     static updateRoom() {

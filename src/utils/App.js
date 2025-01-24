@@ -4,13 +4,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Player_interface_1 = require("../../models/Player.interface");
-const RoomServices_1 = __importDefault(require("../ModelServices/RoomServices"));
 const PlayerErrors_1 = require("../Errors/PlayerErrors");
+const GameService_1 = __importDefault(require("../ModelServices/GameService"));
+const RoomServices_1 = __importDefault(require("../ModelServices/RoomServices"));
 class App {
-    constructor(playerServices, roomService, ws) {
+    constructor(playerServices, roomService, gameService, ws) {
         this.ws = ws;
         this.playerServices = playerServices;
         this.roomService = roomService;
+        this.gameService = gameService;
     }
     dispatchRequest(req) {
         //  req.data = JSON.parse(req.data);
@@ -23,16 +25,13 @@ class App {
                 throw new Error("Error while locating player by WS connection");
             }
             if (req.type === "create_room") {
-                this.createRoom(req);
+                this.createRoom(req, player);
             }
             else if (req.type === "add_user_to_room") {
-                this.addUserToRoom(req);
-            }
-            else if (req.type === "create_game") {
-                this.createGame(req);
+                this.addUserToRoom(req, player);
             }
             else if (req.type === "add_ships") {
-                this.addShips(req);
+                this.addShips(req, player);
             }
             else if (req.type === "start_game") {
                 this.startGame(req);
@@ -90,21 +89,31 @@ class App {
             }
         }
     }
-    createRoom(req) {
-        const player = this.playerServices.findPlayerByWs(this.ws);
+    createRoom(req, player) {
         RoomServices_1.default.addRoom(player);
     }
-    addUserToRoom(req) {
-        const player = this.playerServices.findPlayerByWs(this.ws);
+    addUserToRoom(req, player) {
         const roomId = req.data.hasOwnProperty("indexRoom") ? req.data.indexRoom : undefined;
         if (!roomId) {
-            console.log("Missing data in json req");
+            throw new Error("Missing data in json req");
         }
         else {
             RoomServices_1.default.addUsersToRoom(player, roomId);
         }
     }
-    createGame(req) {
+    addShips(req, player) {
+        let gameId, indexPlayer, ships;
+        if (req.data.hasOwnProperty('gameId')
+            && req.data.hasOwnProperty('indexPlayer')
+            && req.data.hasOwnProperty('ships')) {
+            gameId = req.data.gameId;
+            indexPlayer = req.data.indexPlayer;
+            ships = req.data.ships;
+        }
+        else {
+            throw new Error("Missing data in json req");
+        }
+        GameService_1.default.addShips({ gameId, ships, indexPlayer });
     }
     finish(req) {
     }
@@ -113,8 +122,6 @@ class App {
     randomAttack(req) {
     }
     startGame(req) {
-    }
-    addShips(req) {
     }
     attack(req) {
     }

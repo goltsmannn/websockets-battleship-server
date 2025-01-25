@@ -3,8 +3,3 @@ export default interface StartGameRequest {
     idPlayer: string
 }
 
-export interface gameData {
-    idGame: string,
-    idPlayers: string[],
-    turn: string
-}

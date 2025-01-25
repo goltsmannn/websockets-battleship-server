@@ -36,11 +36,11 @@ class App {
             else if (req.type === "attack") {
                 this.attack(req);
             }
-            else if (req.type === "turn") {
-                this.turn(req);
-            }
             else if (req.type === "finish") {
                 this.finish(req);
+            }
+            else if (req.type == "randomAttack") {
+                this.giveTurn(req);
             }
             else {
                 throw new Error("Invalid request type");
@@ -107,6 +107,7 @@ class App {
         else {
             throw new Error("Missing data in add ships request");
         }
+        //   console.log({gameId, ships, indexPlayer})
         GameService_1.default.addShips({ gameId, ships, indexPlayer });
     }
     attack(req) {
@@ -118,9 +119,10 @@ class App {
             throw new Error("Missing data in attack request");
         }
     }
-    finish(req) {
+    giveTurn(req) {
+        GameService_1.default.giveTurn(req);
     }
-    turn(req) {
+    finish(req) {
     }
 }
 exports.default = App;

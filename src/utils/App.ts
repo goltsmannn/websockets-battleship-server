@@ -40,11 +40,12 @@ class App {
                 this.addShips(req, player);
             } else if (req.type === "attack") {
                 this.attack(req as AttackRequest);
-            } else if (req.type === "turn") {
-                this.turn(req);
             } else if (req.type === "finish") {
                 this.finish(req);
-            } else {
+            } else if(req.type == "randomAttack") {
+                this.giveTurn(req);
+            }
+            else {
                 throw new Error("Invalid request type");
             }
         }
@@ -112,6 +113,7 @@ class App {
         } else {
             throw new Error("Missing data in add ships request");
         }
+     //   console.log({gameId, ships, indexPlayer})
         GameService.addShips({gameId, ships, indexPlayer});
     }
 
@@ -124,14 +126,13 @@ class App {
         }
     }
 
+    private giveTurn(req: Request) {
+        GameService.giveTurn(req);
+    }
     private finish(req: Request) {
 
     }
 
-
-    private turn(req: Request) {
-
-    }
 
 }
 

@@ -22,3 +22,8 @@ export default interface ShipRequest {
     ships: ShipData[];
     indexPlayer: string;
 }
+
+export interface ShipResponse {
+    ships: ShipData[];
+    currentPlayerIndex: string;
+}

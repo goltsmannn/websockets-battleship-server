@@ -63,17 +63,7 @@ class App {
         }
 
         try {
-            const player: Player = this.playerServices.addPlayer((req.data as Player).name, (req.data as Player).password, this.ws);
-            const response: Request = {type: "reg",
-                data: JSON.stringify({
-                    name: player.name,
-                    index: player.index,
-                    error: false,
-                    errorText: "",
-                }),
-                id: req['id']};
-            this.ws.send(JSON.stringify(response));
-
+            this.playerServices.addPlayer((req.data as Player).name, (req.data as Player).password, this.ws);
         } catch (err) {
             if (err instanceof AuthorizationError) {
                 console.log(err.message);

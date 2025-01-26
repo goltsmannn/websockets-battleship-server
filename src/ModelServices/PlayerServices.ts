@@ -27,7 +27,7 @@ export default class PlayerServices {
     //     this.ws = ws;
     // }
 
-    addPlayer(name: string, password: string, ws: WebSocket): Player {
+    addPlayer(name: string, password: string, ws: WebSocket) {
         const existingPlayer = this.findPlayerByName(name);
         if(existingPlayer) {
             console.log("Player already exists");
@@ -43,9 +43,20 @@ export default class PlayerServices {
 
         const index = createId(name, password);
         this._Players[index] = <Player>{name, password, index, wins: 0, ws: ws};
-        this.updateWinners(this._Players[index]);
+
+        const response: Request = {
+            type: "reg",
+            data: JSON.stringify({
+                name: name,
+                index: index,
+                error: false,
+                errorText: "",
+            }),
+            id: 0
+        };
+        ws.send(JSON.stringify(response));
         RoomServices.updateRoom();
-        return this._Players[index];
+        this.updateWinners(this._Players[index]);
     }
 
     findPlayerByName(name: string): Player | undefined {
@@ -57,12 +68,13 @@ export default class PlayerServices {
     }
 
     updateWinners(player: Player) {
+        let winners = [];
+        for(const player of Object.values(this.Players)) {
+            winners.push({name: player.name, wins: player.wins});
+        }
         const request: Request = {
             type: "update_winners",
-            data: {
-                name: player.name,
-                wins: player.wins
-            },
+            data: JSON.stringify(winners),
             id : 0
         }
 

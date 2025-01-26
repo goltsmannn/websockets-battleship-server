@@ -1,7 +1,7 @@
 import {UserData} from "../../models/RoomResponse.interface";
 import Request from "../../models/Request.interface";
 import PlayerServices from "./PlayerServices";
-import ShipRequest, {ShipResponse, ShipType} from "../../models/ShipRequest.interface";
+import ShipRequest, {ShipResponse} from "../../models/ShipRequest.interface";
 import WebSocket from "ws";
 import {AttackData} from "../../models/AttackRequest.interface";
 import {GameDataPostInitiation, GameDataPreInitiation, ShipDetails} from "../../models/GameData.interface";
@@ -114,7 +114,6 @@ export default class GameService {
         if (defendingCells[request.x][request.y] == 0) {
             console.log("Miss");
             this.GameData[request.gameId].turn = defenderId
-            this.sendTurnRequest(this.Games[request.gameId], defenderId);
             status = "miss";
         } else if (defendingCells[request.x][request.y] == 2) {
             console.log("Can't attack dead cells");
@@ -135,11 +134,13 @@ export default class GameService {
             status = "hit";
             console.log("Hit")
             if(defendingCellsLeftCounter == 0) {
+                status = "gameOver";
                 const request = {
                     type: "finish",
-                    data: {
-                        winPlayer: attackerId,
-                    },
+                    data:
+                        JSON.stringify({
+                            winPlayer: attackerId,
+                        }),
                     id: 0
                 }
                 this.notifyBothPlayers(request, "", defenderId, attackerId);
@@ -156,7 +157,7 @@ export default class GameService {
                     x: request.x,
                     y: request.y,
                 },
-                currentPlayer: "",
+                currentPlayer: attackerId,
                 status: status,
             },
             id: 0
@@ -167,8 +168,13 @@ export default class GameService {
         } else {
             gameData.cellsLeft1 = defendingCellsLeftCounter;
         }
+        if (status != "game_over") {
+            this.notifyBothPlayers(response, "", attackerId, defenderId);
+        }
+        if (status == "miss") {
+            this.sendTurnRequest(this.Games[request.gameId], defenderId);
+        }
 
-        this.notifyBothPlayers(response, "currentPlayer", attackerId, attackerId);
     }
 
 
@@ -287,13 +293,13 @@ export default class GameService {
                                 x: x,
                                 y: y,
                             },
-                            currentPlayer: "",
+                            currentPlayer: attackerId,
                             status: "miss",
                         },
                         id: 0
                     };
 
-                    this.notifyBothPlayers(response, "currentPlayer", defenderId, attackerId);
+                    this.notifyBothPlayers(response, "", attackerId, defenderId);
                 }
             }
         }

@@ -3,12 +3,7 @@ interface Position {
     y: number;
 }
 
-export const ShipType = {
-    'small': 1,
-    'medium': 2,
-    'large': 3,
-    'huge': 4
-}
+
 
 export interface ShipData {
     position: Position;

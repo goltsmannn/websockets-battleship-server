@@ -82,7 +82,6 @@ class GameService {
         if (defendingCells[request.x][request.y] == 0) {
             console.log("Miss");
             this.GameData[request.gameId].turn = defenderId;
-            this.sendTurnRequest(this.Games[request.gameId], defenderId);
             status = "miss";
         }
         else if (defendingCells[request.x][request.y] == 2) {
@@ -103,11 +102,12 @@ class GameService {
             status = "hit";
             console.log("Hit");
             if (defendingCellsLeftCounter == 0) {
+                status = "gameOver";
                 const request = {
                     type: "finish",
-                    data: {
+                    data: JSON.stringify({
                         winPlayer: attackerId,
-                    },
+                    }),
                     id: 0
                 };
                 this.notifyBothPlayers(request, "", defenderId, attackerId);
@@ -123,7 +123,7 @@ class GameService {
                     x: request.x,
                     y: request.y,
                 },
-                currentPlayer: "",
+                currentPlayer: attackerId,
                 status: status,
             },
             id: 0
@@ -134,7 +134,12 @@ class GameService {
         else {
             gameData.cellsLeft1 = defendingCellsLeftCounter;
         }
-        this.notifyBothPlayers(response, "currentPlayer", attackerId, attackerId);
+        if (status != "game_over") {
+            this.notifyBothPlayers(response, "", attackerId, defenderId);
+        }
+        if (status == "miss") {
+            this.sendTurnRequest(this.Games[request.gameId], defenderId);
+        }
     }
     static giveTurn(request) {
         const gameId = request.data.gameId;
@@ -224,12 +229,12 @@ class GameService {
                                 x: x,
                                 y: y,
                             },
-                            currentPlayer: "",
+                            currentPlayer: attackerId,
                             status: "miss",
                         },
                         id: 0
                     };
-                    this.notifyBothPlayers(response, "currentPlayer", defenderId, attackerId);
+                    this.notifyBothPlayers(response, "", attackerId, defenderId);
                 }
             }
         }
